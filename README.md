@@ -104,9 +104,11 @@ make clean
 
 ## 📷 Ảnh chụp màn hình 
 <img width="856" height="489" alt="image" src="https://github.com/user-attachments/assets/0dab86a7-ebae-47b5-91fc-1ef70d75f9f6" />
+
 *(Màn hình chính)*
 
 <img width="842" height="479" alt="image" src="https://github.com/user-attachments/assets/48e94510-d510-4489-82fe-6095ac6f7d37" />
+
 *(Màn hình trò chơi)*
 
 ---
