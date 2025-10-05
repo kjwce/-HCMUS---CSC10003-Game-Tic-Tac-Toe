@@ -45,27 +45,19 @@ LDFLAGS  = -L/usr/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 ## 📂 Cấu trúc thư mục
 
 ```
-ThePowerofOnePerson/
-│
-├── src/                          # Mã nguồn trò chơi
-│   ├── CaroGame.cpp              # File main
-│   ├── Page.cpp / Page.h         # Lớp cơ sở cho các màn hình
-│   ├── Home.cpp / Home.h         # Giao diện trang chủ
-│   ├── ClassicModeMenu.cpp       # Giao diện chế độ cổ điển
-│   ├── BombMode.cpp              # Giao diện chế độ bom
-│   ├── Board.cpp / Board.h       # Bàn cờ PvP
-│   ├── BoardAI.cpp / BoardAI.h   # Bàn cờ PvE (AI)
-│   ├── bombBoard.cpp / bombBoard.h # Bàn cờ Bom
-│   ├── bot.cpp / bot.h           # AI robot
-│   ├── assets/                   # Hình ảnh, âm thanh, font
-│   └── Makefile                  # Script biên dịch
-│
-├── docs/                         # Tài liệu & media minh hoạ
-|   ├── UML.png                   # Sơ đồ lớp
-│   ├── report.pdf                # Báo cáo đồ án
-│   └── Link video giới thiệu sản phẩm.docx # Video demo trò chơi
-│
-└── README.md                     # Hướng dẫn sử dụng / cài đặt
+src/
+├── CaroGame.cpp              # File main
+├── Page.cpp / Page.h         # Lớp cơ sở cho các màn hình
+├── Home.cpp / Home.h         # Giao diện trang chủ
+├── ClassicModeMenu.cpp       # Giao diện chế độ cổ điển
+├── BombMode.cpp              # Giao diện chế độ bom
+├── Board.cpp / Board.h       # Bàn cờ PvP
+├── BoardAI.cpp / BoardAI.h   # Bàn cờ PvE (AI)
+├── bombBoard.cpp / bombBoard.h # Bàn cờ Bom
+├── bot.cpp / bot.h           # AI robot
+├── assets/                   # Hình ảnh, âm thanh, font
+└── Makefile                  # Script biên dịch
+└── README.md                 # Hướng dẫn sử dụng / cài đặt
 ```
 
 ---
