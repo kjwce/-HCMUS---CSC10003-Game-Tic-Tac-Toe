@@ -56,7 +56,8 @@ src/
 ├── bombBoard.cpp / bombBoard.h # Bàn cờ Bom
 ├── bot.cpp / bot.h           # AI robot
 ├── assets/                   # Hình ảnh, âm thanh, font
-└── Makefile                  # Script biên dịch
+├── Makefile                  # Script biên dịch
+├── .dll                      # Các file dll 
 └── README.md                 # Hướng dẫn sử dụng / cài đặt
 ```
 
