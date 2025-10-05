@@ -1,0 +1,447 @@
+#include "board.h"
+#include "bot.h"
+#include "move.h"
+#include "bomb.h"
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+
+BombAI::BombAI(sf::RenderWindow* win, GameState& currentState, GameState& nextState) :
+    BoardAI(win, currentState, nextState),
+    bombElapsedBeforePause(0.0f),
+    hasFirstMove(false),
+    bombCountdown(BOMB_TRIGGER_SECONDS)
+{
+    Bomb::initRandom();
+    bombCountdown = BOMB_TRIGGER_SECONDS;
+    bombTimerClock.restart();
+    isTurnTiming = false;
+}
+
+void BombAI::draw(sf::RenderWindow& window) {
+    BoardAI::draw(window);
+    drawBombCountdown();
+    drawExplosions();
+}
+
+bool BombAI::isWinner() {
+    for (int i = 0; i < SIZE; ++i) {
+        for (int j = 0; j < SIZE; ++j) {
+            int player = board[i][j];
+            if (player == 0) continue;
+
+            if (j + 4 < SIZE &&
+                player == board[i][j + 1] &&
+                player == board[i][j + 2] &&
+                player == board[i][j + 3] &&
+                player == board[i][j + 4]) {
+                return true;
+            }
+
+            if (i + 4 < SIZE &&
+                player == board[i + 1][j] &&
+                player == board[i + 2][j] &&
+                player == board[i + 3][j] &&
+                player == board[i + 4][j]) {
+                return true;
+            }
+
+            if (i + 4 < SIZE && j + 4 < SIZE &&
+                player == board[i + 1][j + 1] &&
+                player == board[i + 2][j + 2] &&
+                player == board[i + 3][j + 3] &&
+                player == board[i + 4][j + 4]) {
+                return true;
+            }
+
+            if (i - 4 >= 0 && j + 4 < SIZE &&
+                player == board[i - 1][j + 1] &&
+                player == board[i - 2][j + 2] &&
+                player == board[i - 3][j + 3] &&
+                player == board[i - 4][j + 4]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void BombAI::checkWin() {
+    for (int i = 0; i < SIZE; ++i) {
+        for (int j = 0; j <= SIZE - 5; ++j) {
+            if (board[i][j] != 0 &&
+                board[i][j] == board[i][j + 1] &&
+                board[i][j] == board[i][j + 2] &&
+                board[i][j] == board[i][j + 3] &&
+                board[i][j] == board[i][j + 4]) {
+                popup.show((board[i][j] == 1 ? "\t You Win" : "\tYou lose"));
+                gameOver = true;
+                isTurnTiming = false;
+                return;
+            }
+            if (board[j][i] != 0 &&
+                board[j][i] == board[j + 1][i] &&
+                board[j][i] == board[j + 2][i] &&
+                board[j][i] == board[j + 3][i] &&
+                board[j][i] == board[j + 4][i]) {
+                popup.show((board[j][i] == 1 ? "\t You Win" : "\tYou lose"));
+                gameOver = true;
+                isTurnTiming = false;
+                return;
+            }
+        }
+    }
+
+    for (int i = 0; i <= SIZE - 5; ++i) {
+        for (int j = 0; j <= SIZE - 5; ++j) {
+            if (board[i][j] != 0 &&
+                board[i][j] == board[i + 1][j + 1] &&
+                board[i][j] == board[i + 2][j + 2] &&
+                board[i][j] == board[i + 3][j + 3] &&
+                board[i][j] == board[i + 4][j + 4]) {
+                popup.show((board[i][j] == 1 ? "\t You Win" : "\tYou lose"));
+                gameOver = true;
+                isTurnTiming = false;
+                return;
+            }
+            if (board[i + 4][j] != 0 &&
+                board[i + 4][j] == board[i + 3][j + 1] &&
+                board[i + 4][j] == board[i + 2][j + 2] &&
+                board[i + 4][j] == board[i + 1][j + 3] &&
+                board[i + 4][j] == board[i][j + 4]) {
+                popup.show((board[i + 4][j] == 1 ? "\t You Win" : "\tYou lose"));
+                gameOver = true;
+                isTurnTiming = false;
+                return;
+            }
+        }
+    }
+}
+
+
+void BombAI::handleEvent(sf::RenderWindow& window, const sf::Event& event, GameState& currentState) {
+    if (ignoreNextClick && event.type == sf::Event::MouseButtonPressed) {
+        ignoreNextClick = false;
+        return;
+    }
+
+    if (menu->isOpened()) {
+        std::cout << "Menu đang mở, xử lý sự kiện menu\n";
+        menu->handleEvent(event);
+        return;
+    }
+
+    for (auto* btn : buttons) {
+        btn->update(window, event);
+
+        if (btn->wasClicked(window, event)) {
+            auto* slideBtn = dynamic_cast<SlideButton*>(btn);
+            if (slideBtn) {
+                if (slideBtn->getTargetSlide() == GameState::PLAY_BOARD) {
+                    if (!isPaused) {
+                        elapsedBeforePause += clock.getElapsedTime().asSeconds();
+                        bombElapsedBeforePause += bombTimerClock.getElapsedTime().asSeconds();
+                    }
+                    isPaused = true;
+                    isTurnTiming = false;
+                    hasPausedOnce = true;
+                    menu->open();
+                    return;
+                }
+                currentState = slideBtn->getTargetSlide();
+                return;
+            }
+        }
+    }
+
+    if (popup.isVisible()) {
+        if (event.type == sf::Event::MouseButtonPressed &&
+            event.mouseButton.button == sf::Mouse::Left) {
+
+            sf::Vector2f mousePos = window.mapPixelToCoords(
+                {event.mouseButton.x, event.mouseButton.y}
+            );
+            PopupAction action = popup.handleClick(mousePos);
+
+            if (ignoreNextClick) {
+                ignoreNextClick = false;
+                return;
+            }
+
+            if (action == PopupAction::REPLAY) {
+                resetBoard();
+                popup.hide();
+                ignoreNextClick = true;
+                return;
+            }
+            else if (action == PopupAction::HOME) {
+                resetBoard();
+                currentState = MAIN_MENU;
+                popup.hide();
+                ignoreNextClick = true;
+                return;
+            }
+        }
+        return;
+    }
+
+    if (gameOver || botThinking) return;
+
+    if (currentPlayer == PLAYER &&
+        event.type == sf::Event::MouseButtonPressed &&
+        event.mouseButton.button == sf::Mouse::Left) {
+
+        sf::Vector2f mousePos = window.mapPixelToCoords(
+            {event.mouseButton.x, event.mouseButton.y}
+        );
+
+        if (ignoreNextClick) {
+            ignoreNextClick = false;
+            return;
+        }
+
+        int j = (mousePos.x - offsetX) / CELL_SIZE;
+        int i = (mousePos.y - offsetY) / CELL_SIZE;
+
+        if (i >= 0 && i < SIZE && j >= 0 && j < SIZE && board[i][j] == 0) {
+            board[i][j] = currentPlayer;
+            // Đặt lại thời gian cho mỗi nước đi mới
+            hasFirstMove = true; // Đánh dấu đã có nước đi
+            elapsedBeforePause = 0.f; // Reset thời gian trước khi pause
+            bombElapsedBeforePause = 0.f; // Reset thời gian bom
+            clock.restart(); // Restart đồng hồ cho lượt mới
+            bombTimerClock.restart(); // Restart đồng hồ bom
+            isTurnTiming = true; // Kích hoạt đếm ngược thời gian
+
+            checkWin();
+            if (!gameOver) {
+                currentPlayer = BOT;
+                turnX = false;
+                updateArrowPosition();
+                botClock.restart();
+            }
+        }
+    }
+    
+}
+
+void BombAI::initUI(GameState& currentState, GameState& nextState) {
+    if (!font.loadFromFile("asset/font/Pixelify.ttf")) {
+        std::cout << "Cannot load font\n";
+        exit(-1);
+    }
+    if (!arrowTexture.loadFromFile("asset/Picture14.png")) {
+        std::cout << "Can't load Picture14.png (arrow)\n";
+        return;
+    }
+    arrowSprite.setTexture(arrowTexture);
+    arrowSprite.setScale(0.15f, 0.15f);
+
+    player1Text.setFont(font);
+    player1Text.setString("Player");
+    player1Text.setCharacterSize(30);
+    player1Text.setFillColor(sf::Color::White);
+    player1Text.setStyle(sf::Text::Bold);
+    player1Text.setOutlineColor(sf::Color::Black);
+    player1Text.setOutlineThickness(2);
+
+    player2Text.setFont(font);
+    player2Text.setString("AI bot");
+    player2Text.setCharacterSize(30);
+    player2Text.setFillColor(sf::Color::White);
+    player2Text.setStyle(sf::Text::Bold);
+    player2Text.setOutlineColor(sf::Color::Black);
+    player2Text.setOutlineThickness(2);
+
+    player1Text.setPosition(60, 305);
+    player2Text.setPosition(60, 405);
+
+    picture2();
+    updateArrowPosition();
+
+    isPaused = false;
+    isTurnTiming = false;
+    clockOffset = 0;
+    pausedElapsedTime = 0;
+    clock.restart();
+
+    auto* btnMenu = new SlideButton(GameState::PLAY_BOARD);
+    btnMenu->loadTextures("asset/Picture11.png", "asset/Picture111.png");
+    btnMenu->setScale(0.2f, 0.2f);
+    btnMenu->setPosition(50, 20);
+    buttons.push_back(btnMenu);
+
+    updateArrowPosition();
+
+    menu->onResumeCallback = [this]() {
+        bool gameStarted = false;
+        for (int i = 0; i < SIZE; ++i) {
+            for (int j = 0; j < SIZE; ++j) {
+                if (board[i][j] != 0) {
+                    gameStarted = true;
+                    break;
+                }
+            }
+            if (gameStarted) break;
+        }
+
+        if (gameStarted && isPaused && hasPausedOnce) {
+            elapsedBeforePause += pauseStartTime.asSeconds();
+            bombElapsedBeforePause += bombTimerClock.getElapsedTime().asSeconds();
+            clock.restart();
+            bombTimerClock.restart();
+            isPaused = false;
+            isTurnTiming = true;
+            hasPausedOnce = false;
+        } else {
+            isPaused = false;
+            isTurnTiming = false;
+            hasPausedOnce = false;
+            elapsedBeforePause = 0.f;
+            bombElapsedBeforePause = 0.f;
+            clock.restart();
+            bombTimerClock.restart();
+        }
+        ignoreNextClick = true;
+        menu->close();
+    };
+
+    menu->onNewGameCallback = [this]() {
+        resetBoard();
+        ignoreNextClick = true;
+        menu->close();
+    };
+
+    menu->onQuitCallback = [this, &currentState, &nextState]() {
+        std::cout << "Nút Quit được bấm, chuyển sang MAIN_MENU\n";
+        isPaused = false;
+        isTurnTiming = false;
+        nextState = GameState::MAIN_MENU;
+        resetBoard();
+        menu->close();
+        ignoreNextClick = true; 
+        std::cout << "Trạng thái hiện tại: MAIN_MENU\n";
+    };
+}
+
+void BombAI::drawUI() {
+    BoardAI::drawUI();
+
+    if (popup.isVisible()) {
+        popup.draw(*window);
+    }
+}
+
+void BombAI::update() {
+    if (isPaused || gameOver) return;
+
+    // Chỉ cập nhật hiệu ứng nền khi trò chơi đã bắt đầu
+    if (hasFirstMove && totalFrames > 0 && frameClock.getElapsedTime().asSeconds() >= frameDuration) {
+        currentFrameIndex = (currentFrameIndex + 1) % totalFrames;
+        backgroundSprite.setTexture(backgroundFrames[currentFrameIndex]);
+        frameClock.restart();
+        std::cout << "Cập nhật khung hình nền, currentFrameIndex = " << currentFrameIndex << "\n";
+    }
+
+    
+
+    if (currentPlayer == BOT && !botThinking && botClock.getElapsedTime().asSeconds() >= 1.0f) {
+        if (botClock.getElapsedTime().asSeconds() >= 0.5f) {
+            startBotThread();
+        }
+    }
+
+    if (!hasFirstMove) {
+        std::cout << "Trò chơi chưa bắt đầu, bỏ qua cập nhật logic game\n";
+        return;
+    }
+
+    float elapsed = clock.getElapsedTime().asSeconds();
+    if (elapsed >= turnTimeLimit && !gameOver) {
+        popup.show("\tTimed out!\n\tYou lose");
+        gameOver = true;
+        isTurnTiming = false;
+        return;
+    }
+
+    if (!isPaused) {
+        if (bombElapsedBeforePause + bombTimerClock.getElapsedTime().asSeconds() >= 1.0f) {
+            bombCountdown--;
+            bombElapsedBeforePause = 0.f;
+            bombTimerClock.restart();
+        }
+    }
+
+    if (Bomb::shouldExplode(bombCountdown)) {
+        activeExplosions.clear();
+        Bomb::explode(board, activeExplosions);
+        bombCountdown = BOMB_TRIGGER_SECONDS;
+        explosionAnimationClock.restart();
+        checkWin();
+    }
+
+    if (!activeExplosions.empty() && explosionAnimationClock.getElapsedTime().asSeconds() >= EXPLOSION_DISPLAY_DURATION) {
+        activeExplosions.clear();
+    }
+
+    if (isTurnTiming) {
+        if (elapsed >= turnTimeLimit) {
+            turnX = !turnX;
+            updateArrowPosition();
+            clock.restart();
+            isTurnTiming = false;
+        }
+    }
+}
+
+void BombAI::drawBombCountdown() {
+    sf::Text bombText;
+    bombText.setFont(font);
+    bombText.setString("Bomb in: " + std::to_string(bombCountdown) + "s");
+    bombText.setCharacterSize(40);
+    bombText.setFillColor(sf::Color::White);
+    bombText.setOutlineColor(sf::Color::Black);
+    bombText.setOutlineThickness(2);
+    bombText.setPosition(1050, 650);
+    window->draw(bombText);
+}
+
+void BombAI::drawExplosions() {
+    if (activeExplosions.empty()) return;
+
+    float elapsed = explosionAnimationClock.getElapsedTime().asSeconds();
+    float progress = elapsed / EXPLOSION_DISPLAY_DURATION;
+    sf::Uint8 alpha = static_cast<sf::Uint8>(255 * (1.0f - progress));
+
+    for (const auto& exp : activeExplosions) {
+        sf::CircleShape explosionCircle(CELL_SIZE / 2.5f);
+        explosionCircle.setOrigin(explosionCircle.getRadius(), explosionCircle.getRadius());
+        explosionCircle.setPosition(
+            offsetX + exp.col * CELL_SIZE + CELL_SIZE / 2.0f,
+            offsetY + exp.row * CELL_SIZE + CELL_SIZE / 2.0f
+        );
+        explosionCircle.setFillColor(sf::Color(255, 100, 0, alpha));
+        explosionCircle.setOutlineThickness(2);
+        explosionCircle.setOutlineColor(sf::Color(255, 255, 0, alpha));
+        window->draw(explosionCircle);
+    }
+}
+
+void BombAI::resetBoard() {
+    BoardAI::resetBoard();
+    bombCountdown = BOMB_TRIGGER_SECONDS;
+    bombTimerClock.restart();
+    activeExplosions.clear();
+    explosionAnimationClock.restart();
+    isTurnTiming = false;
+    hasFirstMove = false;
+    gameOver = false;
+    clockOffset = 0;
+    pausedElapsedTime = 0.f;
+    elapsedBeforePause = 0.f;
+    bombElapsedBeforePause = 0.f;
+
+    // Reset background animation
+    currentFrameIndex = 0;
+    frameClock.restart();
+}
