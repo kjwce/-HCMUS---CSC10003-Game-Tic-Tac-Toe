@@ -24,9 +24,8 @@ Dự án sử dụng thư viện đồ họa và âm thanh **SFML**.
 - **Đa hình (Polymorphism):**  
   Hệ thống quản lý các trạng thái game thông qua con trỏ `Page*`, cho phép xử lý linh hoạt mà không phụ thuộc vào loại trang cụ thể.
 
-- **Design Pattern (State Pattern):**
-
-Mỗi lớp con của `Page` đại diện cho một trạng thái của trò chơi (ví dụ: `Home`, `Board`, `Tutorial`...), giúp quá trình chuyển đổi và quản lý logic trở nên rõ ràng, hiệu quả và dễ mở rộng.
+- **Design Pattern (State Pattern):**  
+  Mỗi lớp con của `Page` đại diện cho một trạng thái của trò chơi (ví dụ: `Home`, `Board`, `Tutorial`...), giúp quá trình chuyển đổi và quản lý logic trở nên rõ ràng, hiệu quả và dễ mở rộng.
 
 ---
 
