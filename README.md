@@ -10,6 +10,26 @@ Dự án sử dụng thư viện đồ họa và âm thanh **SFML**.
 
 ---
 
+## 🧱 Ứng dụng OOP và Design Pattern
+
+- **Đóng gói (Encapsulation):**  
+  Các lớp như `SlideButton` và `Board` ẩn dữ liệu nội bộ, chỉ cho phép truy cập thông qua các phương thức công khai.
+
+- **Kế thừa (Inheritance):**  
+  Các lớp `Home`, `Board`, `BombBoard`, `BoardAI` kế thừa từ lớp cơ sở `Page`, giúp tái sử dụng và mở rộng chức năng.
+
+- **Trừu tượng (Abstraction):**  
+  Các lớp `Button` và `Menu` định nghĩa giao diện chuẩn, buộc lớp con phải triển khai cụ thể các hành vi cần thiết.
+
+- **Đa hình (Polymorphism):**  
+  Hệ thống quản lý các trạng thái game thông qua con trỏ `Page*`, cho phép xử lý linh hoạt mà không phụ thuộc vào loại trang cụ thể.
+
+- **Design Pattern (State Pattern):**
+
+Mỗi lớp con của `Page` đại diện cho một trạng thái của trò chơi (ví dụ: `Home`, `Board`, `Tutorial`...), giúp quá trình chuyển đổi và quản lý logic trở nên rõ ràng, hiệu quả và dễ mở rộng.
+
+---
+
 ## 📦 Yêu cầu hệ thống
 
 Để biên dịch và chạy dự án này, bạn cần có:
