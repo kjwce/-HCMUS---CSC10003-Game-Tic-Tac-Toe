@@ -20,7 +20,7 @@ Dự án sử dụng thư viện đồ họa và âm thanh **SFML**.
   - Đảm bảo đã tải và giải nén SFML đúng phiên bản.  
 
 > ⚠️ Trong `Makefile`, đường dẫn mặc định là:  
-> `D:/SFML-2.6.2-windows-gcc-13.1.0-mingw-64-bit/SFML-2.6.2`  
+> `D:/SFML-2.6.2`  
 > Nếu bạn cài SFML ở vị trí khác, hãy sửa lại **2 biến** trong Makefile:  
 
 ```make
