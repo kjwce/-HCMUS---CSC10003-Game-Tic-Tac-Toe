@@ -34,7 +34,7 @@ Dự án sử dụng thư viện đồ họa và âm thanh **SFML**.
 Để biên dịch và chạy dự án này, bạn cần có:
 
 - **Trình biên dịch C++:** GCC (khuyến nghị MinGW trên Windows) hỗ trợ chuẩn C++17.  
-- **Thư viện SFML:** Phiên bản 2.6.2 (hoặc tương đương) phù hợp với compiler.  
+- **Thư viện SFML:** [Phiên bản 2.6.2](https://www.sfml-dev.org/download/sfml/2.6.2/) (hoặc tương đương) phù hợp với compiler.  
   - Ví dụ: với GCC 13.1.0 trên Windows, sử dụng bản SFML dành cho MinGW-w64 64-bit.  
   - Đảm bảo đã tải và giải nén SFML đúng phiên bản.  
 
